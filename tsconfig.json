@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "outDir": "./dist/",
+    "target": "ES2022",
+    "baseUrl": "src",
+    "moduleResolution": "Node",
+    "strict": true,
+    "noImplicitThis": false,
+    "strictNullChecks": true,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "noEmitOnError": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "removeComments": true,
+    "jsx":  "preserve",
+    "paths": {
+      "@/*": [ "*" ]
+    },
+    "types": [
+      "node"
+    ]
+  },
+  "include": [ "env.d.ts", "src/**/*.ts", "src/**/*.vue" ],
+  "exclude": [
+    "node_modules",
+    "src/**/__tests__/*"
+  ]
+}

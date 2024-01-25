@@ -1,15 +1,11 @@
 <template>
   <div class="sc-chat-window" :class="{opened: isOpen, closed: !isOpen}">
     <Header
-      v-if="showHeader"
-      :title="title"
-      :colors="colors"
       @close="$emit('close')"
-      @userList="handleUserListToggle"
+      @user-list="handleUserListToggle"
     >
-      <slot name="header"> </slot>
+      <slot name="header" />
     </Header>
-    <UserList v-if="showUserList" :colors="colors" :participants="participants" />
     <MessageList
       v-if="!showUserList"
       :messages="messages"
@@ -20,32 +16,29 @@
       :show-confirmation-deletion="showConfirmationDeletion"
       :confirmation-deletion-message="confirmationDeletionMessage"
       :message-styling="messageStyling"
-      @scrollToTop="$emit('scrollToTop')"
+      @scroll-to-top="$emit('scrollToTop')"
       @remove="$emit('remove', $event)"
     >
-      <template v-slot:user-avatar="scopedProps">
-        <slot name="user-avatar" :user="scopedProps.user" :message="scopedProps.message"> </slot>
+      <template #user-avatar="scopedProps">
+        <slot name="user-avatar" :user="scopedProps.user" :message="scopedProps.message" />
       </template>
-      <template v-slot:text-message-body="scopedProps">
+      <template #text-message-body="scopedProps">
         <slot
           name="text-message-body"
           :message="scopedProps.message"
-          :messageText="scopedProps.messageText"
-          :messageColors="scopedProps.messageColors"
+          :message-text="scopedProps.messageText"
+          :message-colors="scopedProps.messageColors"
           :me="scopedProps.me"
-        >
-        </slot>
+        />
       </template>
-      <template v-slot:system-message-body="scopedProps">
-        <slot name="system-message-body" :message="scopedProps.message"> </slot>
+      <template #system-message-body="scopedProps">
+        <slot name="system-message-body" :message="scopedProps.message" />
       </template>
-      <template v-slot:text-message-toolbox="scopedProps">
-        <slot name="text-message-toolbox" :message="scopedProps.message" :me="scopedProps.me">
-        </slot>
+      <template #text-message-toolbox="scopedProps">
+        <slot name="text-message-toolbox" :message="scopedProps.message" :me="scopedProps.me" />
       </template>
     </MessageList>
     <UserInput
-      v-if="!showUserList"
       :show-emoji="showEmoji"
       :show-emoji-in-text="showEmojiInText"
       :on-submit="onUserInputSubmit"
@@ -53,17 +46,17 @@
       :show-file="showFile"
       :placeholder="placeholder"
       :colors="colors"
-      @onType="$emit('onType', $event)"
+      @on-type="$emit('onType', $event)"
       @edit="$emit('edit', $event)"
     />
   </div>
 </template>
 
 <script>
-import Header from './Header.vue'
-import MessageList from './MessageList.vue'
-import UserInput from './UserInput.vue'
-import UserList from './UserList.vue'
+import Header from "./Header.vue"
+import MessageList from "./MessageList.vue"
+import UserInput from "./UserInput.vue"
+import UserList from "./UserList.vue"
 
 export default {
   components: {
@@ -138,23 +131,24 @@ export default {
       required: true
     }
   },
-  data() {
+  data () {
     return {
       showUserList: false
     }
   },
   computed: {
-    messages() {
+    messages () {
       let messages = this.messageList
 
       return messages
     }
   },
   methods: {
-    handleUserListToggle(showUserList) {
+    handleUserListToggle (showUserList) {
       this.showUserList = showUserList
     },
-    getSuggestions() {
+    getSuggestions () {
+      console.log(this.messages)
       return this.messages.length > 0 ? this.messages[this.messages.length - 1].suggestions : []
     }
   }

@@ -93,7 +93,7 @@ export default {
 
 .sc-message--content.received .sc-message--file {
   color: #263238;
-  background-color: #f4f7f9;
+  background-color: #e2e8f0;
   margin-right: 40px;
 }
 

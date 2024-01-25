@@ -1,13 +1,11 @@
 import Launcher from './Launcher.vue'
 import VTooltip from 'v-tooltip'
 
-import 'v-tooltip/dist/v-tooltip.css'
-
 import emitter from './emitter'
 
-const defaultComponentName = 'BeautifulChat'
+const defaultComponentName = 'GenieChat'
 
-const VueBeatifulChat = {
+const GenieChat = {
   install(app, options = {}) {
     /**
      * Makes sure that plugin can be installed only once
@@ -26,4 +24,4 @@ const VueBeatifulChat = {
   }
 }
 
-export default VueBeatifulChat
+export default GenieChat

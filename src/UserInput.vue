@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Suggestions :suggestions="suggestions" :colors="colors" @sendSuggestion="_submitSuggestion" />
+    <Suggestions :suggestions="suggestions" :colors="colors" @send-suggestion="_submitSuggestion" />
     <div
       v-if="file"
       class="file-container"
@@ -9,22 +9,18 @@
         color: colors.userInput.bg
       }"
     >
-      <span class="icon-file-message"
-        ><img :src="icons.file.img" :alt="icons.file.name" height="15"
-      /></span>
+      <span class="icon-file-message"><img :src="icons.file.img" :alt="icons.file.name" height="15" /></span>
       {{ file.name }}
-      <span class="delete-file-message" @click="cancelFile()"
-        ><img
-          :src="icons.closeSvg.img"
-          :alt="icons.closeSvg.name"
-          height="10"
-          title="Remove the file"
+      <span class="delete-file-message" @click="cancelFile()"><img
+        :src="icons.closeSvg.img"
+        :alt="icons.closeSvg.name"
+        height="10"
+        title="Remove the file"
       /></span>
     </div>
     <form
       class="sc-user-input"
       :class="{active: inputActive}"
-      :style="{background: colors.userInput.bg}"
     >
       <div
         ref="userInput"
@@ -33,24 +29,22 @@
         contentEditable="true"
         :placeholder="placeholder"
         class="sc-user-input--text"
-        :style="{color: colors.userInput.text}"
         @focus="setInputActive(true)"
         @blur="setInputActive(false)"
         @keydown="handleKey"
         @input="handleInput"
         @focusUserInput="focusUserInput()"
-      ></div>
+      />
       <div class="sc-user-input--buttons">
-        <div class="sc-user-input--button"></div>
+        <div class="sc-user-input--button" />
         <div v-if="showEmoji && !isEditing" class="sc-user-input--button">
-          <EmojiIcon :on-emoji-picked="_handleEmojiPicked" :color="colors.userInput.text" />
+          <EmojiIcon :on-emoji-picked="_handleEmojiPicked" />
         </div>
         <div v-if="showFile && !isEditing" class="sc-user-input--button">
-          <FileIcons :on-change="_handleFileSubmit" :color="colors.userInput.text" />
+          <FileIcons :on-change="_handleFileSubmit" />
         </div>
         <div v-if="isEditing" class="sc-user-input--button">
           <UserInputButton
-            :color="colors.userInput.text"
             tooltip="cancel"
             @click.native.prevent="_editFinish"
           >
@@ -60,7 +54,6 @@
         <div class="sc-user-input--button">
           <UserInputButton
             v-if="isEditing"
-            :color="colors.userInput.text"
             tooltip="Edit"
             @click.native.prevent="_editText"
           >
@@ -68,7 +61,6 @@
           </UserInputButton>
           <UserInputButton
             v-else
-            :color="colors.userInput.text"
             tooltip="Send"
             @click.native.prevent="_submitText"
           >
@@ -81,16 +73,16 @@
 </template>
 
 <script>
-import EmojiIcon from './icons/EmojiIcon.vue'
-import FileIcons from './icons/FileIcons.vue'
-import UserInputButton from './UserInputButton.vue'
-import Suggestions from './Suggestions.vue'
-import FileIcon from './assets/file.svg'
-import CloseIconSvg from './assets/close.svg'
-import store from './store/'
-import IconCross from './components/icons/IconCross.vue'
-import IconOk from './components/icons/IconOk.vue'
-import IconSend from './components/icons/IconSend.vue'
+import EmojiIcon from "./icons/EmojiIcon.vue"
+import FileIcons from "./icons/FileIcons.vue"
+import UserInputButton from "./UserInputButton.vue"
+import Suggestions from "./Suggestions.vue"
+import FileIcon from "./assets/file.svg"
+import CloseIconSvg from "./assets/close.svg"
+import store from "./store/"
+import IconCross from "./components/icons/IconCross.vue"
+import IconOk from "./components/icons/IconOk.vue"
+import IconSend from "./components/icons/IconSend.vue"
 
 export default {
   components: {
@@ -109,11 +101,11 @@ export default {
         return {
           file: {
             img: FileIcon,
-            name: 'default'
+            name: "default"
           },
           closeSvg: {
             img: CloseIconSvg,
-            name: 'default'
+            name: "default"
           }
         }
       }
@@ -140,14 +132,10 @@ export default {
     },
     placeholder: {
       type: String,
-      default: 'Write something...'
-    },
-    colors: {
-      type: Object,
-      required: true
+      default: "Ask me anything..."
     }
   },
-  data() {
+  data () {
     return {
       file: null,
       inputActive: false,
@@ -155,31 +143,31 @@ export default {
     }
   },
   computed: {
-    editMessageId() {
+    editMessageId () {
       return this.isEditing && store.state.editMessage.id
     },
-    isEditing() {
+    isEditing () {
       return store.state.editMessage && store.state.editMessage.id
     }
   },
   watch: {
-    editMessageId(m) {
+    editMessageId (m) {
       if (store.state.editMessage != null && store.state.editMessage != undefined) {
         this.$refs.userInput.focus()
         this.$refs.userInput.textContent = store.state.editMessage.data.text
       } else {
-        this.$refs.userInput.textContent = ''
+        this.$refs.userInput.textContent = ""
       }
     }
   },
-  mounted() {
-    this.$event.$on('focusUserInput', () => {
+  mounted () {
+    this.$event.$on("focusUserInput", () => {
       if (this.$refs.userInput) {
         this.focusUserInput()
       }
     })
 
-    document.addEventListener('selectionchange', () => {
+    document.addEventListener("selectionchange", () => {
       const selection = document.getSelection()
       if (
         !selection ||
@@ -197,13 +185,13 @@ export default {
     })
   },
   methods: {
-    cancelFile() {
+    cancelFile () {
       this.file = null
     },
-    setInputActive(onoff) {
+    setInputActive (onoff) {
       this.inputActive = onoff
     },
-    handleKey(event) {
+    handleKey (event) {
       if (event.keyCode === 13 && !event.shiftKey) {
         if (!this.isEditing) {
           this._submitText(event)
@@ -217,33 +205,33 @@ export default {
         event.preventDefault()
       }
     },
-    handleInput(event) {
-      this.$emit('onType', event.target.textContent)
+    handleInput (event) {
+      this.$emit("onType", event.target.textContent)
     },
-    focusUserInput() {
+    focusUserInput () {
       this.$nextTick(() => {
         this.$refs.userInput.focus()
       })
     },
-    _submitSuggestion(suggestion) {
-      this.onSubmit({author: 'me', type: 'text', data: {text: suggestion}})
+    _submitSuggestion (suggestion) {
+      this.onSubmit({ author: "me", type: "text", data: { text: suggestion } })
     },
-    _checkSubmitSuccess(success) {
+    _checkSubmitSuccess (success) {
       if (Promise !== undefined) {
         Promise.resolve(success).then(
           function (wasSuccessful) {
             if (wasSuccessful === undefined || wasSuccessful) {
               this.file = null
-              this.$refs.userInput.innerHTML = ''
+              this.$refs.userInput.innerHTML = ""
             }
           }.bind(this)
         )
       } else {
         this.file = null
-        this.$refs.userInput.innerHTML = ''
+        this.$refs.userInput.innerHTML = ""
       }
     },
-    _submitText(event) {
+    _submitText (event) {
       const text = this.$refs.userInput.textContent
       const file = this.file
       if (file) {
@@ -252,66 +240,66 @@ export default {
         if (text && text.length > 0) {
           this._checkSubmitSuccess(
             this.onSubmit({
-              author: 'me',
-              type: 'text',
-              data: {text}
+              author: "me",
+              type: "text",
+              data: { text }
             })
           )
         }
       }
     },
-    _submitTextWhenFile(event, text, file) {
+    _submitTextWhenFile (event, text, file) {
       if (text && text.length > 0) {
         this._checkSubmitSuccess(
           this.onSubmit({
-            author: 'me',
-            type: 'file',
-            data: {text, file}
+            author: "me",
+            type: "file",
+            data: { text, file }
           })
         )
       } else {
         this._checkSubmitSuccess(
           this.onSubmit({
-            author: 'me',
-            type: 'file',
-            data: {file}
+            author: "me",
+            type: "file",
+            data: { file }
           })
         )
       }
     },
-    _editText(event) {
+    _editText (event) {
       const text = this.$refs.userInput.textContent
       if (text && text.length) {
-        this.$emit('edit', {
-          author: 'me',
-          type: 'text',
+        this.$emit("edit", {
+          author: "me",
+          type: "text",
           id: store.state.editMessage.id,
-          data: {text}
+          data: { text }
         })
         this._editFinish()
       }
     },
-    _handleEmojiPicked(emoji) {
+    _handleEmojiPicked (emoji) {
       if (this.showEmojiInText) {
         this._addToTextEmoji(emoji)
       } else {
         this._submitEmoji(emoji)
       }
     },
-    _submitEmoji(emoji) {
+    _submitEmoji (emoji) {
       this._checkSubmitSuccess(
         this.onSubmit({
-          author: 'me',
-          type: 'emoji',
-          data: {emoji}
+          author: "me",
+          type: "emoji",
+          data: { emoji }
         })
       )
     },
-    _addToTextEmoji(emoji) {
+    _addToTextEmoji (emoji) {
       let range = this.prevSelectionRange
       if (!range) {
         if (!this.$refs.userInput.firstChild) {
-          this.$refs.userInput.append(document.createTextNode(''))
+          this.$refs.userInput.append(document.createTextNode(""))
         }
 
         range = document.createRange()
@@ -328,11 +316,11 @@ export default {
       range.collapse(false)
       this.$refs.userInput.focus()
     },
-    _handleFileSubmit(file) {
+    _handleFileSubmit (file) {
       this.file = file
     },
-    _editFinish() {
-      store.setState('editMessage', null)
+    _editFinish () {
+      store.setState("editMessage", null)
     }
   }
 }

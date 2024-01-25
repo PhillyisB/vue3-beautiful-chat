@@ -1,6 +1,6 @@
 <template>
   <div class="sc-message--text" :style="messageColors">
-    <div class="sc-message--toolbox" :style="{background: messageColors.backgroundColor}">
+    <div class="sc-message--toolbox">
       <button v-if="showEdition && me && message.id" :disabled="isEditing" @click="edit">
         <IconBase :color="isEditing ? 'black' : messageColors.color" width="10" icon-name="edit">
           <IconEdit />
@@ -27,7 +27,7 @@
 
     <slot :message="message" :messageText="messageText" :messageColors="messageColors" :me="me">
       <p class="sc-message--text-content" v-html="messageText"></p>
-      <p v-if="message.data.meta" class="sc-message--meta" :style="{color: messageColors.color}">
+      <p v-if="message.data.meta" class="sc-message--meta">
         {{ message.data.meta }}
       </p>
       <p v-if="message.isEdited" class="sc-message--edited">
@@ -45,7 +45,7 @@ import {mapState} from '../store/'
 import IconBase from './../components/IconBase.vue'
 import IconEdit from './../components/icons/IconEdit.vue'
 import IconCross from './../components/icons/IconCross.vue'
-import escapeGoat from 'escape-goat'
+import {htmlEscape} from 'escape-goat';
 import Autolinker from 'autolinker'
 import store from '../store/'
 
@@ -81,7 +81,7 @@ export default {
   },
   computed: {
     messageText() {
-      const escaped = escapeGoat.escape(this.message.data.text)
+      const escaped = htmlEscape(this.message.data.text)
 
       return Autolinker.link(this.messageStyling ? fmt(escaped) : escaped, {
         className: 'chatLink',
@@ -117,7 +117,6 @@ export default {
 
 <style scoped lang="scss">
 .sc-message--text {
-  padding: 5px 20px;
   border-radius: 6px;
   font-weight: 300;
   font-size: 14px;
@@ -161,16 +160,9 @@ export default {
   }
 }
 
-.sc-message--content.sent .sc-message--text {
-  color: white;
-  background-color: #4e8cff;
-  max-width: calc(100% - 120px);
-  word-wrap: break-word;
-}
-
 .sc-message--content.received .sc-message--text {
   color: #263238;
-  background-color: #f4f7f9;
+  background-color: #e2e8f0;
   margin-right: 40px;
 }
 

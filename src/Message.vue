@@ -17,7 +17,7 @@
           :style="{
             backgroundImage: `url(${chatImageUrl})`
           }"
-        ></div>
+        />
       </slot>
 
       <TextMessage
@@ -29,20 +29,36 @@
         :confirmation-deletion-message="confirmationDeletionMessage"
         @remove="$emit('remove')"
       >
-        <template v-slot:default="scopedProps">
+        <template #default="scopedProps">
           <slot
             name="text-message-body"
             :message="scopedProps.message"
-            :messageText="scopedProps.messageText"
-            :messageColors="scopedProps.messageColors"
+            :message-text="scopedProps.messageText"
+            :message-colors="scopedProps.messageColors"
             :me="scopedProps.me"
-          >
+          />
+          <p class="sc-message--text-content" v-html="scopedProps.messageText" />
+          <slot v-if="scopedProps.message.hasAttachment" class="sc-message--file pt-1"> 
+            <div :horizontal="true" :wrap="true" :tokens="{ childrenGap: 5 }">
+              <span class="citationLearnMore">Sources:</span>
+              <a
+                v-for="(source) in scopedProps.message.citations"
+                :key="source"
+                class="citation"
+                :title="source.docTitle"
+                :to="'/browse/'+ source.link"
+                @click="openLink(source.link)"
+              >
+                <br />
+                {{ source.docTitle }} - {{ source.pageTitle }}
+              </a>
+            </div>
           </slot>
         </template>
-        <template v-slot:text-message-toolbox="scopedProps">
-          <slot name="text-message-toolbox" :message="scopedProps.message" :me="scopedProps.me">
-          </slot>
-        </template>
+        
+        <template #text-message-toolbox="scopedProps">
+          <slot name="text-message-toolbox" :message="scopedProps.message" :me="scopedProps.me" />
+        </template>    
       </TextMessage>
       <EmojiMessage v-else-if="message.type === 'emoji'" :data="message.data" />
       <FileMessage
@@ -56,19 +72,19 @@
         :data="message.data"
         :message-colors="messageColors"
       >
-        <slot name="system-message-body" :message="message.data"> </slot>
+        <slot name="system-message-body" :message="message.data" />
       </SystemMessage>
     </div>
   </div>
 </template>
 
 <script>
-import TextMessage from './messages/TextMessage.vue'
-import FileMessage from './messages/FileMessage.vue'
-import EmojiMessage from './messages/EmojiMessage.vue'
-import TypingMessage from './messages/TypingMessage.vue'
-import SystemMessage from './messages/SystemMessage.vue'
-import chatIcon from './assets/chat-icon.svg'
+import TextMessage from "./messages/TextMessage.vue"
+import FileMessage from "./messages/FileMessage.vue"
+import EmojiMessage from "./messages/EmojiMessage.vue"
+import TypingMessage from "./messages/TypingMessage.vue"
+import SystemMessage from "./messages/SystemMessage.vue"
+import chatIcon from "./assets/chat-icon.svg"
 
 export default {
   components: {
@@ -105,38 +121,30 @@ export default {
     }
   },
   computed: {
-    authorName() {
+    authorName () {
       return this.user && this.user.name
     },
-    chatImageUrl() {
+    chatImageUrl () {
       return (this.user && this.user.imageUrl) || chatIcon
     },
-    messageColors() {
-      return this.message.author === 'me' ? this.sentColorsStyle : this.receivedColorsStyle
+    messageColors () {
+      return this.message.author === "me" ? this.sentColorsStyle : this.receivedColorsStyle
     },
-    receivedColorsStyle() {
-      return {
-        color: this.colors.receivedMessage.text,
-        backgroundColor: this.colors.receivedMessage.bg
-      }
-    },
-    sentColorsStyle() {
-      return {
-        color: this.colors.sentMessage.text,
-        backgroundColor: this.colors.sentMessage.bg
-      }
-    }
   }
 }
 </script>
 
 <style lang="scss">
 .sc-message {
-  width: 300px;
-  margin: auto;
-  padding-bottom: 10px;
-  display: flex;
-  .sc-message--edited {
+  margin-left: 0px 11px 0px;
+  width: 98%;
+  margin-bottom: 1rem ;
+  padding-bottom: 0px;
+  flex-direction: column;
+    flex: 1 1 0;
+    display: flex;
+
+    .sc-message--edited {
     opacity: 0.7;
     word-wrap: normal;
     font-size: xx-small;
@@ -152,6 +160,17 @@ export default {
 .sc-message--content.sent {
   justify-content: flex-end;
 }
+
+.sc-message--content.sent .sc-message--text {
+    background-color: #3E63DD ;
+    max-width: calc(100% - 120px);
+    word-wrap: break-word;
+    margin-left: auto;
+    border-radius: 10px 10px 0 10px;
+    color: #fff;
+
+}
+
 
 .sc-message--content.system {
   justify-content: center;
@@ -174,20 +193,49 @@ export default {
 
 .sc-message--meta {
   font-size: xx-small;
-  margin-bottom: 0px;
-  color: white;
+  margin-top: 0.65rem !important;
+  color: rgb(97, 108, 118) !important;
+  position: absolute !important;
   text-align: center;
 }
 
-@media (max-width: 450px) {
-  .sc-message {
-    width: 80%;
-  }
+.sc-message--content.sent .sc-message--text .sc-message--meta {
+    right: 0;
 }
 
-.sc-message--text {
-  padding: 5px 20px;
+.sc-message--file-name, .sc-message--text-content {
+    min-width: 0;
+    margin-top: 0;
+    margin-bottom: 0rem !important;
+    max-width: none;
+    width: auto;
+    min-height: 0;
+    max-height: none;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    background-color: transparent;
+    background-image: none;
+    border: 0 none transparent;
+    border-radius: 0;
+    overflow: visible;
+    font-size: 100%;
+    font-style: normal;
+    font-weight: 400;
+    line-height: inherit;
+    text-decoration: none;
+    text-align: left;
+    text-shadow: none;
+    text-transform: none;
+}
+
+.sc-message--text {   
   border-radius: 6px;
+  padding-top: .5rem;
+    padding-bottom: .5rem;
+    padding-inline-start: 1rem;
+    padding-inline-end: 1rem;
   font-weight: 300;
   font-size: 14px;
   line-height: 1.4;
@@ -231,22 +279,30 @@ export default {
     }
   }
 }
-.sc-message--content.sent .sc-message--text {
-  color: white;
-  background-color: #4e8cff;
-  max-width: calc(100% - 120px);
-  word-wrap: break-word;
-}
 
 .sc-message--text code {
   font-family: 'Courier New', Courier, monospace !important;
 }
 
+
 .sc-message--content.received .sc-message--text {
   color: #263238;
-  background-color: #f4f7f9;
+  background-color: #e2e8f0;
   margin-right: 40px;
+  border-top-left-radius: 0;
 }
+
+.sc-message .sc-message--content.received{
+  padding-left:10px
+}
+
+.sc-message--content .received{
+      margin-bottom: 20px;
+      max-width: 80%;
+      display: flex;
+      min-width: 500px;
+      padding-left:3px;
+    }
 
 .tooltip {
   display: block !important;
@@ -354,5 +410,45 @@ export default {
       border-color: $color;
     }
   }
+}
+
+.hide{
+  display: none;
+}
+
+.invalid-input {
+  position: absolute;
+  z-index: 1;
+  background: #ffffff;
+  color: #643045;
+  font-weight: bold;
+  padding: 3px 10px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: solid 1px red;
+  line-height: normal;
+  white-space: normal;
+  word-wrap: normal;
+  bottom: 4.8em;
+}
+
+.invalid-arrow,
+.invalid-arrow::before {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+}
+
+.invalid-arrow {
+  visibility: hidden;
+}
+
+.invalid-arrow::before {
+  visibility: visible;
+  content: "";
+  transform: rotate(45deg);
+  border-bottom: solid 1px red;
+  border-right: solid 1px red;
 }
 </style>

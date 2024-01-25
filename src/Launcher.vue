@@ -1,74 +1,219 @@
 <template>
   <div>
-    <div
-      v-if="showLauncher"
+    <div      
       class="sc-launcher"
       :class="{opened: isOpen}"
-      :style="{backgroundColor: colors.launcher.bg}"
       @click.prevent="isOpen ? close() : openAndFocus()"
     >
       <div v-if="newMessagesCount > 0 && !isOpen" class="sc-new-messsages-count">
         {{ newMessagesCount }}
       </div>
-      <img v-if="isOpen" class="sc-closed-icon" :src="icons.close.img" :alt="icons.close.name" />
-      <img v-else class="sc-open-icon" :src="icons.open.img" :alt="icons.open.name" />
+      <img v-if="isOpen" :src="CloseIcon" :alt="CloseIcon" class="sc-closed-icon" />
+      <img v-else :src="OpenIcon" :alt="OpenIcon" class="sc-open-icon" />
     </div>
     <ChatWindow
       :message-list="messageList"
-      :on-user-input-submit="onMessageWasSent"
+      :on-user-input-submit="sendMessage"
       :participants="participants"
-      :title="chatWindowTitle"
       :is-open="isOpen"
-      :show-emoji="showEmoji"
-      :show-emoji-in-text="showEmojiInText"
-      :show-file="showFile"
-      :show-confirmation-deletion="showConfirmationDeletion"
-      :confirmation-deletion-message="confirmationDeletionMessage"
-      :show-header="showHeader"
-      :placeholder="placeholder"
+      :show-header="true"
       :show-typing-indicator="showTypingIndicator"
-      :colors="colors"
-      :always-scroll-to-bottom="alwaysScrollToBottom"
-      :message-styling="messageStyling"
+      :always-scroll-to-bottom="true"
       @close="close"
-      @scrollToTop="$emit('scrollToTop')"
-      @onType="$emit('onType', $event)"
-      @edit="$emit('edit', $event)"
-      @remove="$emit('remove', $event)"
-    >
-      <template v-slot:header>
-        <slot name="header"> </slot>
-      </template>
-      <template v-slot:user-avatar="scopedProps">
-        <slot name="user-avatar" :user="scopedProps.user" :message="scopedProps.message"> </slot>
-      </template>
-      <template v-slot:text-message-body="scopedProps">
-        <slot
-          name="text-message-body"
-          :message="scopedProps.message"
-          :messageText="scopedProps.messageText"
-          :messageColors="scopedProps.messageColors"
-          :me="scopedProps.me"
-        >
-        </slot>
-      </template>
-      <template v-slot:system-message-body="scopedProps">
-        <slot name="system-message-body" :message="scopedProps.message"> </slot>
-      </template>
-      <template v-slot:text-message-toolbox="scopedProps">
-        <slot name="text-message-toolbox" :message="scopedProps.message" :me="scopedProps.me">
-        </slot>
-      </template>
-    </ChatWindow>
+      @scroll-to-top="$emit('scrollToTop')"
+      @on-type="handleOnType"
+      @keydown="handleKeyPress"
+    />
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+
+import { ref, onMounted } from "vue"
+import ChatWindow from "./ChatWindow.vue"
+import CloseIcon from "./assets/close-icon.png"
+import OpenIcon from "./assets/logo-no-bg.svg"
+import { format } from "date-fns";
+import { profile } from "./models/Profile";
+import AskResponse from "./models/ChatRequest";
+
+import messageHistoryTest from "../demo/src/messageHistory"
+
+const props = defineProps<{ 
+  apiKey: string,
+  appId: string,
+  profileDetails: profile,
+}>()
+
+const answers = ref<Array<[user: string, response: AskResponse]>>([]);
+const isOpen = ref();
+const newMessagesCount = ref();
+const autoFocus = ref(true);
+const invalidMessage = ref(true);
+const showTypingIndicator = ref("");
+const messageList = ref<Array<[type: string,id: string,author: string,data: {text: string}]>>([]); 
+const citations = ref<string[] | undefined>([]);
+const citationsPaths = ref<string[] | undefined>([]);
+const participants = ref()
+
+const $emit = defineEmits<{
+    (e: "focusUserInput");
+    (e: "scrollToTop");
+  
+  }>();
+
+onMounted(() => {
+  messageList.value = messageHistoryTest;
+  if (localStorage.getItem(props.profileDetails?.subjectId as string)) {
+    try {
+      //JSON.parse(localStorage.getItem(props.profileDetails?.subjectId as string));
+    } catch(e) {
+      localStorage.removeItem(props.profileDetails?.subjectId as string);
+    }
+  }
+  else{
+    newMessagesCount.value = 1;
+    //setMessagesStart();
+  }
+
+  const inputfield = document.getElementsByClassName("sc-suggestions-row")[0]
+  const errorMessage = document.createElement("div");
+  errorMessage.className = "invalid-input absolute hide";
+  errorMessage.innerHTML = `
+        <span>It appears that you've entered an invalid character. Please only use numbers and letters. For example, 'What's the current time?'</span>
+        <div class="invalid-arrow"></div>
+    `;
+  
+  inputfield.append(errorMessage)
+
+});
+
+function handleOnType (e: string) {
+  if(e == "") {
+    invalidMessage.value = true
+  }
+
+  invalidMessageHide();
+  if (e !== "") {
+    invalidMessage.value = /^[A-Za-z0-9?' ,-]+$/.test(e);
+    if (invalidMessage.value) {      
+      invalidMessageHide();  
+    } else {
+      invalidMessageShow();
+    }
+  }
+}
+
+function invalidMessageHide (){
+  document.getElementsByClassName("invalid-input")[0].classList.add("hide");  
+  document.getElementsByClassName("sc-user-input--button-icon-wrapper")[0].removeAttribute("disabled")   
+}
+
+function invalidMessageShow (){
+  document.getElementsByClassName("invalid-input")[0].classList.remove("hide");  
+  document.getElementsByClassName("sc-user-input--button-icon-wrapper")[0].setAttribute("disabled", "true")    
+}
+
+function handleKeyPress (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+  }
+}
+
+
+function setMessagesStart (){
+  messageList.value.push(
+    {  
+      type: "file",
+      id: 0,
+      author: "genie",
+      data: {
+        file:{
+          name:"Iceland Foods Limited Virtual Assistant Disclaimer.pdf",
+          url: "/Iceland_Foods_Limited_Virtual_Assistant_Disclaimer.pdf"
+        },
+        text: "We kindly request that you carefully read and familiarise yourself with our Virtual Assistant usage Disclaimer and Terms of Service, which can be found above.",
+      }
+    },
+    {
+      type: "text",
+      id: 1,
+      author: "genie",
+      data: {
+        text: "Hi " + props.profileDetails.userName.split(" ",1) + ". How can I help?"
+      },
+    },
+  );
+}
+
+function sendMessage (question) {
+  if(invalidMessage.value){
+    const sanitizedValue = question.data.text.replace(/[^A-Za-z0-9?' ,-]/g, "");
+    if(sanitizedValue.trim() !== "")
+    {
+      invalidMessage.value = false;
+      showTypingIndicator.value = "true";
+
+      citations.value = [];
+      citationsPaths.value = [];
+
+      const unknownMessage = {
+        author: "me",
+        type: "text",
+        id: Math.random(),
+        data: {
+          meta:format(new Date(), "p"),
+          text: sanitizedValue,
+        },
+      };
+
+      messageList.value.push(unknownMessage)
+      // storeChatSession();
+      // makeApiRequest(question);
+      
+    }
+    else{
+      invalidMessage.value = true
+    }
+  }
+  else{
+    console.log("Invalid")
+    invalidMessageHide()
+    const unknownMessage = {
+      author: "genie",
+      type: "system",
+      id: Math.random(),
+      data: {
+        text: "Message not sent. It appears that you've entered an invalid character. Please only use numbers and letters. For example, 'What's the current time?'"
+      },
+    };
+
+    answers.value = [];
+    messageList.value.push(unknownMessage);
+    showTypingIndicator.value = "";
+  }  
+}
+
+function openAndFocus (){
+  isOpen.value = true
+  newMessagesCount.value = 0
+  if (autoFocus.value) {
+    $emit("focusUserInput")
+  }
+}
+
+const close = () => {
+  isOpen.value = false;
+};
+</script>
+
+<!-- <script>
 import store from './store/'
 import ChatWindow from './ChatWindow.vue'
 
 import CloseIcon from './assets/close-icon.png'
 import OpenIcon from './assets/logo-no-bg.svg'
+
 
 export default {
   components: {
@@ -154,10 +299,6 @@ export default {
       type: String,
       default: () => ''
     },
-    titleImageUrl: {
-      type: String,
-      default: () => ''
-    },
     onMessageWasSent: {
       type: Function,
       required: true
@@ -200,27 +341,27 @@ export default {
       default: function () {
         return {
           header: {
-            bg: '#4e8cff',
-            text: '#ffffff'
-          },
-          launcher: {
-            bg: '#4e8cff'
-          },
-          messageList: {
-            bg: '#ffffff'
-          },
-          sentMessage: {
-            bg: '#4e8cff',
-            text: '#ffffff'
-          },
-          receivedMessage: {
-            bg: '#f4f7f9',
-            text: '#ffffff'
-          },
-          userInput: {
-            bg: '#f4f7f9',
-            text: '#565867'
-          }
+          bg: "#1e293b",
+          text: "#ffffff",
+        },
+        launcher: {
+          bg: "#1e293b",
+        },
+        messageList: {
+          bg: "#ffffff",
+        },
+        sentMessage: {
+          bg: "#3E63DD",
+          text: "#ffffff",
+        },
+        receivedMessage: {
+          bg: "#e2e8f0",
+          text: "#222222",
+        },
+        userInput: {
+          bg: "#f4f7f9",
+          text: "#565867",
+        },
         }
       }
     },
@@ -239,12 +380,7 @@ export default {
   },
   computed: {
     chatWindowTitle() {
-      if (this.title !== '') return this.title
-
-      if (this.participants.length === 0) return 'You'
-      if (this.participants.length > 1) return 'You, ' + this.participants[0].name + ' & others'
-
-      return 'You & ' + this.participants[0].name
+      return this.title
     }
   },
   watch: {
@@ -267,10 +403,25 @@ export default {
     }
   }
 }
-</script>
+</script> -->
 
-<style scoped>
+<style lang="scss" scoped>
+.sc-chat-window {
+   z-index: 95;
+
+   @include media-breakpoint-up(md) {
+     width: 450px;
+     height: calc(189% - 100vh);
+     max-height: none;
+   }
+ }
+
+.hide{
+  display: none;
+}
+
 .sc-launcher {
+  background-color: #1e293b;
   width: 60px;
   height: 60px;
   background-position: center;
@@ -350,5 +501,105 @@ export default {
   margin: auto;
   font-size: 12px;
   font-weight: 500;
+}
+
+.full-chat-window{
+    position: absolute !important;
+    top: 0px !important;
+    right: 10px !important;
+    bottom: 0px !important;
+    height: 100% !important; 
+    max-height: none !important;
+    width: calc(100% - 270px) !important;
+    height: 100vh !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    background-color: #f8f8f8 !important;
+    .sc-message-list{
+      background-color: #f8f8f8 !important;
+      padding: 0px;
+      border-bottom-width: thin;
+    }
+
+    .sc-message{
+      padding-bottom: 10px !important;
+    }
+
+    .sc-message--text > .sc-message--file{
+      box-shadow:  none !important;
+      padding: 0px !important;
+    }
+
+    .sc-message--file-text, .sc-message--file-name{
+      background-color: rgb(249, 249, 249) !important;
+    }
+
+    .invalid-input {
+      bottom: 8em;
+    }
+    
+    .sc-header{
+      background-color: #dee2e6 !important;
+      color: #000000 !important;
+      min-height: 0px !important;
+      box-shadow: none !important;
+    }
+
+    .sc-user-input{
+      border-radius: 8px;
+        box-shadow: 0 8px 16px #00000024, 0 0 2px #0000001f;
+        height: 100px;
+        width: 100%;
+        padding: 15px;
+        background: white;
+        transition: none !important;
+    }
+
+    .sc-user-input.active {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1411764706), 0 0 2px rgba(0, 0, 0, 0.1215686275);
+    }
+
+    .sc-message--text{
+      font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    white-space: pre-line;
+    }
+    .sc-message--meta{
+      margin-top: 1.65rem !important;
+    }
+
+    .sc-user-input--text{
+    font-size: 14px;
+    font-weight: 400;
+    box-shadow: none;
+    margin: 0px;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    border-radius: 0px;
+    border: none;
+    background: none transparent;
+    color: rgb(50, 49, 48);
+    width: 100%;
+    min-width: 0px;
+    text-overflow: ellipsis;
+    outline: 0px;
+    resize: none;
+    min-height: inherit;
+    line-height: 17px;
+    flex-grow: 1;
+    overflow: auto;
+    }
+    .sc-message--content .received{
+      margin-bottom: 20px;
+      max-width: 80%;
+      display: flex;
+      min-width: 500px;
+    }
+    .sc-suggestions-row{
+      background: rgb(247 247 247) !important;
+    }
 }
 </style>

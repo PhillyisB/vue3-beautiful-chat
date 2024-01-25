@@ -3,6 +3,13 @@ ifProd = () => process.env.NODE_ENV === 'production'
 module.exports = {
   lintOnSave: false,
   productionSourceMap: ifProd(),
+  css: {
+    loaderOptions: {
+      sass: {
+        additionalData: "@import \"~bootstrap/scss/bootstrap\";"
+      }
+    },
+  },
   chainWebpack: (config) => {
     // Inline images & svgs into build
     config.module

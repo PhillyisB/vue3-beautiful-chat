@@ -7,7 +7,7 @@
             <img :src="user.imageUrl" class="img-msg" />
           </td>
           <td class="user-element" :style="{color: userListColor.userList.text}">
-            {{ user.name }}
+            test
           </td>
         </tr>
       </tbody>
